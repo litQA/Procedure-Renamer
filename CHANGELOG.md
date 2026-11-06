@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.4.8-beta
+
+## Fixes
+Fixed 1 bug(s).
+- Set `compileJava.source` to the rewritten shadow root plus other plugin source roots after project evaluation, so ModDev or other plugins cannot re-introduce `src/main/java` and bypass procedure renaming.
+
 ## 1.0.3.7-beta
 
 ## Fixes

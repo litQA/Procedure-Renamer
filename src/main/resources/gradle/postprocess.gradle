@@ -108,27 +108,30 @@ def samePath = { File left, File right ->
     }
 }
 
-afterEvaluate {
+gradle.projectsEvaluated {
     if (project.extensions.findByName('sourceSets') != null) {
-        def mainSourceSet = sourceSets.main
+        def mainSourceSet = project.sourceSets.main
         def originalJavaDir = new File(prProjectDir, 'src/main/java')
         List<File> otherJavaDirs = mainSourceSet.java.srcDirs.findAll { File dir ->
             !samePath(dir, originalJavaDir) && !samePath(dir, prShadowDir)
         }.toList()
 
-        // Keep source roots contributed by other plugins (for example the
-        // optional_packs generated Java hook) while replacing the generated
-        // src/main/java tree with the rewritten shadow copy.
-        mainSourceSet.java.setSrcDirs([prShadowDir] + otherJavaDirs)
-
-        tasks.matching { it.name == 'compileJava' }.configureEach {
+        // Set the compile source explicitly after all plugins have configured
+        // their source sets. This keeps other plugin source roots (for example
+        // optional_packs' generated Java hook) while never compiling the
+        // original src/main/java tree.
+        project.tasks.matching { it.name == 'compileJava' }.configureEach {
             dependsOn(prPrepare)
-            source = mainSourceSet.java
+            source = project.files([
+                    project.fileTree(prShadowDir) { include '**/*.java' }
+            ] + otherJavaDirs.collect { File dir ->
+                project.fileTree(dir) { include '**/*.java' }
+            })
         }
     } else {
-        tasks.matching { it.name == 'compileJava' }.configureEach {
+        project.tasks.matching { it.name == 'compileJava' }.configureEach {
             dependsOn(prPrepare)
-            source = fileTree(prShadowDir) { include '**/*.java' }
+            source = project.fileTree(prShadowDir) { include '**/*.java' }
         }
     }
 }
