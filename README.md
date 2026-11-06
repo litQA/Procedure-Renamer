@@ -1,3 +1,5 @@
+<img width="1200" alt="banner_procedure_renamer" src="https://github.com/user-attachments/assets/5214669b-c377-497e-ad9b-8e5b053ce382" />
+
 # Procedure Renamer (MCreator 2026.1)
 
 A Java plugin for MCreator 2026.1 that adds a singleton **Procedure Rename**
