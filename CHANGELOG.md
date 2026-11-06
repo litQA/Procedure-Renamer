@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.2.5-beta
+
+## Changes
+- Clarified rename semantics: a valid target package is mandatory; an empty or invalid class name now applies a package-only change, while a class name without a valid target package makes no change.
+- The plugin archive filename is now fixed to `procedure_renamer-2026.1.zip`; the version remains in `plugin.json`, source files and commit messages.
+- Updated the GUI warnings to explain the package-only and class-only rules.
+
 ## 1.0.1.4-beta
 
 ## Fixes

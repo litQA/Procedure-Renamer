@@ -28,9 +28,10 @@ set JAVA_HOME=<path-to-jdk-21>
 gradlew.bat build -g ..\caches\gradle
 ```
 
-The plugin archive is written to `build/libs/procedure_renamer-<version>.zip`.
-The build number in `version.properties` is incremented automatically for every
-`build`/`jar` invocation and is written into the generated `plugin.json`.
+The plugin archive is written to `build/libs/procedure_renamer-2026.1.zip`.
+The archive name is fixed to `{plugin_id}-{mcreator_version}.zip`; the build
+number in `version.properties` is still incremented for every `build`/`jar`
+invocation and is written into the generated `plugin.json`.
 
 ## Install
 

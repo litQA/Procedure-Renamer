@@ -209,21 +209,20 @@ public final class ProcedureRenameProcessor {
                 log("Skipped an entry without a procedure name");
                 continue;
             }
-            if (targetClassName.isEmpty() && targetPackage.isEmpty()) {
-                log("Skipped " + procedureName + ": no target class or package");
+            if (targetPackage.isEmpty()) {
+                log("Skipped " + procedureName + ": a valid target package is required; class name alone is ignored");
                 continue;
             }
-            if (!targetClassName.isEmpty() && !NameRules.isValidClassName(targetClassName)) {
-                log("Skipped " + procedureName + ": invalid target class name '" + targetClassName + "'");
+            if (!NameRules.isValidPackage(targetPackage)) {
+                log("Skipped " + procedureName + ": invalid target package '" + targetPackage + "'; no changes");
                 continue;
             }
-            if (!targetPackage.isEmpty() && !NameRules.isValidPackage(targetPackage)) {
-                log("Skipped " + procedureName + ": invalid target package '" + targetPackage + "'");
-                continue;
-            }
-            if (!usedProcedures.add(procedureName)) {
-                log("Skipped duplicate procedure entry: " + procedureName);
-                continue;
+
+            boolean validClass = !targetClassName.isEmpty() && NameRules.isValidClassName(targetClassName);
+            if (!targetClassName.isEmpty() && !validClass) {
+                log("Ignoring invalid target class name for " + procedureName + "; applying package-only change");
+            } else if (targetClassName.isEmpty()) {
+                log("Applying package-only change for " + procedureName);
             }
 
             String oldClass = procedureName + "Procedure";
@@ -247,8 +246,8 @@ public final class ProcedureRenameProcessor {
                 continue;
             }
 
-            String newClass = targetClassName.isEmpty() ? oldClass : targetClassName;
-            String newPackage = targetPackage.isEmpty() ? oldPackage : targetPackage;
+            String newClass = validClass ? targetClassName : oldClass;
+            String newPackage = targetPackage;
 
             if (oldClass.equals(newClass) && oldPackage.equals(newPackage)) {
                 log("Skipped " + procedureName + ": target is identical to the generated name");
@@ -280,6 +279,10 @@ public final class ProcedureRenameProcessor {
             if (hasConflict(plan, texts)) {
                 usedTargets.remove(newFqn);
                 log("Skipped " + procedureName + ": conflicting class/import references detected");
+                continue;
+            }
+            if (!usedProcedures.add(procedureName)) {
+                log("Skipped duplicate procedure entry: " + procedureName);
                 continue;
             }
             plans.add(plan);

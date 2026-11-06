@@ -65,8 +65,5 @@ processResources {
 tasks.named('jar') {
     dependsOn bumpBuildNumber
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    doFirst {
-        def versionText = buildVersionFile.get().asFile.text.trim()
-        archiveFileName.set("procedure_renamer-${versionText}.zip")
-    }
+    archiveFileName = 'procedure_renamer-2026.1.zip'
 }

@@ -50,3 +50,9 @@ elements and are intentionally excluded.
    ForgeGradle 6 (Gradle 8.14.5), NeoForge ModDev (Gradle 9.4.1) and Fabric Loom
    (Gradle 9.4.1) are validated in separate representative workspaces. The full
    14-generator matrix remains a release-gate activity.
+
+8. **Class-only rename is intentionally ignored.**
+   A valid class name requires a valid target package. If the target package is
+   empty or invalid, the entry makes no change; a valid target package with an
+   empty or invalid class name performs a package-only change and keeps the
+   generated `<procedureName>Procedure` class name.

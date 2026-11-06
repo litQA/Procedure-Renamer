@@ -338,21 +338,36 @@ public class ProcedureRenameGUI extends ModElementGUI<ProcedureRename> {
         return new URI("https://mcreator.net/");
     }
 
-    private ValidationResult validateField(String value, boolean className) {
+    private ValidationResult validateClassField(String classNameValue, String packageValue) {
+        String className = classNameValue == null ? "" : classNameValue.trim();
+        if (className.isEmpty()) {
+            return ValidationResult.PASSED;
+        }
+
+        String packageName = packageValue == null ? "" : packageValue.trim();
+        boolean validPackage = !packageName.isEmpty() && NameRules.isValidPackage(packageName);
+        if (!NameRules.isValidClassName(className)) {
+            return new ValidationResult(ValidationResult.Type.WARNING,
+                    validPackage
+                            ? "Invalid class name. The generated class name will be kept and the valid package will still be applied."
+                            : "Invalid class name. No change will be made unless a valid target package is provided.");
+        }
+
+        if (!validPackage) {
+            return new ValidationResult(ValidationResult.Type.WARNING,
+                    "A valid target package is required to change the class name. This entry will make no change.");
+        }
+
+        return ValidationResult.PASSED;
+    }
+
+    private ValidationResult validatePackageField(String value) {
         String text = value == null ? "" : value.trim();
-        if (text.isEmpty()) {
+        if (text.isEmpty() || NameRules.isValidPackage(text)) {
             return ValidationResult.PASSED;
         }
-
-        boolean valid = className ? NameRules.isValidClassName(text) : NameRules.isValidPackage(text);
-        if (valid) {
-            return ValidationResult.PASSED;
-        }
-
         return new ValidationResult(ValidationResult.Type.WARNING,
-                className
-                        ? "Invalid class name. This entry will be skipped by post-processing."
-                        : "Invalid package. This entry will be skipped by post-processing.");
+                "Invalid package. This entry will make no change.");
     }
 
     private final class Row {
@@ -379,10 +394,11 @@ public class ProcedureRenameGUI extends ModElementGUI<ProcedureRename> {
                 }
             });
 
-            className.setToolTipText("Target Java class name; leave empty to keep the generated name.");
-            packageName.setToolTipText("Target Java package; leave empty to keep the generated package.");
-            className.setValidator(() -> validateField(className.getText(), true));
-            packageName.setValidator(() -> validateField(packageName.getText(), false));
+            className.setToolTipText("Target Java class name; leave empty to keep the generated name. "
+                    + "A valid target package is required to change the class name.");
+            packageName.setToolTipText("Target Java package; required for any rename. Leave empty to skip.");
+            className.setValidator(() -> validateClassField(className.getText(), packageName.getText()));
+            packageName.setValidator(() -> validatePackageField(packageName.getText()));
             className.enableRealtimeValidation();
             packageName.enableRealtimeValidation();
 
