@@ -1,0 +1,112 @@
+// Procedure Renamer Gradle helper.
+// This script is written into the workspace by the Java plugin and is applied
+// from mcreator.gradle while the virtual build API is enabled.
+
+if (extensions.extraProperties.has('procedureRenamerApplied')) {
+    return
+}
+extensions.extraProperties.set('procedureRenamerApplied', true)
+
+def prProjectDir = projectDir
+def prBuildDir = layout.buildDirectory.get().asFile
+def prSourceDir = new File(prProjectDir, 'src/main/java')
+def prShadowDir = new File(prBuildDir, 'procedure_renamer/java')
+def prConfigFile = new File(prProjectDir, '.procedure_renamer/config.json')
+def prPluginJarFile = new File(prProjectDir, '.procedure_renamer/plugin-jar.txt')
+
+def copyRecursively
+copyRecursively = { File source, File target ->
+    target.mkdirs()
+    if (!source.isDirectory()) {
+        return
+    }
+    source.eachFileRecurse { File file ->
+        if (file.isFile()) {
+            String relative = source.toPath().relativize(file.toPath()).toString()
+            File out = new File(target, relative)
+            out.parentFile.mkdirs()
+            java.nio.file.Files.copy(file.toPath(), out.toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+        }
+    }
+}
+
+def runProcessor = { File pluginJar ->
+    String javaName = System.getProperty('os.name').toLowerCase().contains('win') ? 'java.exe' : 'java'
+    File javaExecutable = new File(new File(System.getProperty('java.home'), 'bin'), javaName)
+    if (!javaExecutable.isFile()) {
+        println "[Procedure Renamer] Java executable not found: ${javaExecutable}"
+        return false
+    }
+
+    List<String> command = [
+            javaExecutable.absolutePath,
+            '-cp', pluginJar.absolutePath,
+            'com.litqa.procedurerenamer.processor.ProcedureRenameProcessor',
+            prProjectDir.absolutePath,
+            prBuildDir.absolutePath,
+            prConfigFile.absolutePath
+    ]
+
+    try {
+        Process process = new ProcessBuilder(command).redirectErrorStream(true).start()
+        process.inputStream.eachLine { String line -> println line }
+        int exitCode = process.waitFor()
+        if (exitCode != 0) {
+            println "[Procedure Renamer] Processor exited with code ${exitCode}"
+        }
+        return exitCode == 0
+    } catch (Exception exception) {
+        println "[Procedure Renamer] Could not run processor: ${exception.message}"
+        return false
+    }
+}
+
+def fallbackToNative = {
+    try {
+        prShadowDir.deleteDir()
+        prShadowDir.mkdirs()
+        copyRecursively(prSourceDir, prShadowDir)
+        println '[Procedure Renamer] Using native generated sources'
+    } catch (Exception exception) {
+        println "[Procedure Renamer] Fallback failed: ${exception.message}"
+    }
+}
+
+def prPrepare = tasks.register('procedureRenamePrepare') {
+    inputs.dir(prSourceDir).optional()
+    inputs.file(prConfigFile).optional()
+    inputs.file(prPluginJarFile).optional()
+    outputs.dir(prShadowDir)
+    notCompatibleWithConfigurationCache('Procedure Renamer copies and rewrites Java sources before compilation')
+
+    doLast {
+        boolean processed = false
+        if (prPluginJarFile.isFile()) {
+            String pluginJarPath = prPluginJarFile.getText('UTF-8').trim()
+            File pluginJar = new File(pluginJarPath)
+            if (pluginJar.exists()) {
+                processed = runProcessor(pluginJar)
+            } else {
+                println "[Procedure Renamer] Plugin archive not found: ${pluginJarPath}"
+            }
+        } else {
+            println '[Procedure Renamer] Plugin archive path is missing; using native generated sources'
+        }
+
+        if (!processed) {
+            fallbackToNative()
+        }
+    }
+}
+
+afterEvaluate {
+    if (project.extensions.findByName('sourceSets') != null) {
+        sourceSets.main.java.setSrcDirs([prShadowDir])
+    }
+
+    tasks.matching { it.name == 'compileJava' }.configureEach {
+        dependsOn(prPrepare)
+        source = fileTree(prShadowDir) { include '**/*.java' }
+    }
+}

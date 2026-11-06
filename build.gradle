@@ -1,0 +1,72 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.litqa.procedurerenamer'
+
+def versionProps = new Properties()
+file('version.properties').withInputStream { versionProps.load(it) }
+def pluginVersion = versionProps.getProperty('version')
+version = pluginVersion
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    // Intentionally empty. The build is offline and self-contained.
+}
+
+dependencies {
+    compileOnly files('libs/mcreator-api-2026.1.jar')
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+def buildVersionFile = layout.buildDirectory.file('procedure_renamer/version.txt')
+
+def bumpBuildNumber = tasks.register('bumpBuildNumber') {
+    outputs.file(buildVersionFile)
+    outputs.upToDateWhen { false }
+    doLast {
+        def props = new Properties()
+        file('version.properties').withInputStream { props.load(it) }
+        def current = props.getProperty('version')
+        def matcher = current =~ /^(.*\.)(\d+)(-[A-Za-z0-9]+)?$/
+        def next = current
+        if (matcher.matches()) {
+            next = matcher.group(1) + (matcher.group(2).toInteger() + 1) + (matcher.group(3) ?: '')
+        }
+        props.setProperty('version', next)
+        file('version.properties').withWriter { props.store(it, 'Procedure Renamer version') }
+        def output = buildVersionFile.get().asFile
+        output.parentFile.mkdirs()
+        output.text = next
+    }
+}
+
+processResources {
+    dependsOn bumpBuildNumber
+    outputs.upToDateWhen { false }
+    doLast {
+        def versionText = buildVersionFile.get().asFile.text.trim()
+        def pluginJson = file("${buildDir}/resources/main/plugin.json")
+        if (pluginJson.exists()) {
+            pluginJson.setText(pluginJson.getText('UTF-8').replace('@VERSION@', versionText), 'UTF-8')
+        }
+    }
+}
+
+tasks.named('jar') {
+    dependsOn bumpBuildNumber
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    doFirst {
+        def versionText = buildVersionFile.get().asFile.text.trim()
+        archiveFileName.set("procedure_renamer-${versionText}.zip")
+    }
+}

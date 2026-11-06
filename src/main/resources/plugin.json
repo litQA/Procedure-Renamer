@@ -1,0 +1,15 @@
+{
+  "id": "procedure_renamer",
+  "weight": 3001,
+  "javaplugin": "com.litqa.procedurerenamer.ProcedureRenamerPlugin",
+  "supportedversions": [
+    2026001
+  ],
+  "info": {
+    "name": "Procedure Renamer",
+    "version": "@VERSION@",
+    "description": "Adds a singleton procedure rename configuration element and a build-time post-processor that renames and moves generated procedure classes without modifying MCreator's native generators.",
+    "author": "LitQA",
+    "license": "CC BY-NC 4.0"
+  }
+}
