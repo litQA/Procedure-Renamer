@@ -100,13 +100,35 @@ def prPrepare = tasks.register('procedureRenamePrepare') {
     }
 }
 
+def samePath = { File left, File right ->
+    try {
+        return left.canonicalFile == right.canonicalFile
+    } catch (Exception ignored) {
+        return left.absoluteFile == right.absoluteFile
+    }
+}
+
 afterEvaluate {
     if (project.extensions.findByName('sourceSets') != null) {
-        sourceSets.main.java.setSrcDirs([prShadowDir])
-    }
+        def mainSourceSet = sourceSets.main
+        def originalJavaDir = new File(prProjectDir, 'src/main/java')
+        List<File> otherJavaDirs = mainSourceSet.java.srcDirs.findAll { File dir ->
+            !samePath(dir, originalJavaDir) && !samePath(dir, prShadowDir)
+        }.toList()
 
-    tasks.matching { it.name == 'compileJava' }.configureEach {
-        dependsOn(prPrepare)
-        source = fileTree(prShadowDir) { include '**/*.java' }
+        // Keep source roots contributed by other plugins (for example the
+        // optional_packs generated Java hook) while replacing the generated
+        // src/main/java tree with the rewritten shadow copy.
+        mainSourceSet.java.setSrcDirs([prShadowDir] + otherJavaDirs)
+
+        tasks.matching { it.name == 'compileJava' }.configureEach {
+            dependsOn(prPrepare)
+            source = mainSourceSet.java
+        }
+    } else {
+        tasks.matching { it.name == 'compileJava' }.configureEach {
+            dependsOn(prPrepare)
+            source = fileTree(prShadowDir) { include '**/*.java' }
+        }
     }
 }

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.3.7-beta
+
+## Fixes
+Fixed 1 bug(s).
+- Preserved Java source directories added by other plugins (notably optional_packs' `.optional_packs/generated/java`) when compiling the rewritten shadow source set.
+
 ## 1.0.2.5-beta
 
 ## Changes
