@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.1.4-beta
+
+## Fixes
+Fixed 1 bug(s).
+- Corrected the Procedure Rename icon identifier to match the theme asset key, preventing a workspace loading NullPointerException.
+- Updated the bundled theme icon from the supplied source image and added the localized element name.
+
 ## 1.0.0.3-beta
 
 ## New Content

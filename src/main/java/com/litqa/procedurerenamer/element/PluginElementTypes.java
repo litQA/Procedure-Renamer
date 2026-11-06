@@ -24,7 +24,6 @@ public final class PluginElementTypes {
         PROCEDURE_RENAME = ModElementTypeLoader.register(
                 new ModElementType<>(
                         "procedure_rename",
-                        "Procedure Rename",
                         null,
                         ProcedureRenameGUI::new,
                         ProcedureRename.class
