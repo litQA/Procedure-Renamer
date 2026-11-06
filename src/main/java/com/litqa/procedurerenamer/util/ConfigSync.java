@@ -3,6 +3,7 @@ package com.litqa.procedurerenamer.util;
 import com.litqa.procedurerenamer.element.types.ProcedureRename;
 import net.mcreator.element.GeneratableElement;
 import net.mcreator.element.ModElementType;
+import net.mcreator.gradle.GradleUtils;
 import net.mcreator.workspace.Workspace;
 import net.mcreator.workspace.elements.ModElement;
 import net.mcreator.workspace.settings.WorkspaceSettings;
@@ -67,8 +68,17 @@ public final class ConfigSync {
             }
 
             syncApi(workspace, element != null);
+            clearGradleConfigurationCache(workspace);
         } catch (Exception exception) {
             log("Configuration export failed: " + exception.getMessage());
+        }
+    }
+
+    private static void clearGradleConfigurationCache(Workspace workspace) {
+        try {
+            GradleUtils.clearGradleConfigurationCache(workspace);
+        } catch (Exception exception) {
+            log("Could not clear Gradle configuration cache: " + exception.getMessage());
         }
     }
 

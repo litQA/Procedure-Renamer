@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.5.9-beta
+
+## Fixes
+Fixed 1 bug(s).
+- Cleared stale Gradle configuration cache during workspace synchronization so API, task and script changes cannot be masked by a previously cached task graph.
+
 ## 1.0.4.8-beta
 
 ## Fixes
