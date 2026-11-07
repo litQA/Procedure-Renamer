@@ -84,3 +84,57 @@ fabric-1.21.8:
         apply from: '.procedure_renamer/postprocess.gradle'
     }
 
+fabric-1.20.1:
+  gradle: |
+    if (file('.procedure_renamer/postprocess.gradle').exists()) {
+        apply from: '.procedure_renamer/postprocess.gradle'
+    }
+
+fabric-1.21.1:
+  gradle: |
+    if (file('.procedure_renamer/postprocess.gradle').exists()) {
+        apply from: '.procedure_renamer/postprocess.gradle'
+    }
+
+fabric-1.21.11:
+  gradle: |
+    if (file('.procedure_renamer/postprocess.gradle').exists()) {
+        apply from: '.procedure_renamer/postprocess.gradle'
+    }
+
+fabric-26.1.2:
+  gradle: |
+    if (file('.procedure_renamer/postprocess.gradle').exists()) {
+        apply from: '.procedure_renamer/postprocess.gradle'
+    }
+
+fabric-26.2:
+  gradle: |
+    if (file('.procedure_renamer/postprocess.gradle').exists()) {
+        apply from: '.procedure_renamer/postprocess.gradle'
+    }
+
+fabric-26.3:
+  gradle: |
+    if (file('.procedure_renamer/postprocess.gradle').exists()) {
+        apply from: '.procedure_renamer/postprocess.gradle'
+    }
+
+neoforge-26.1.2:
+  gradle: |
+    if (file('.procedure_renamer/postprocess.gradle').exists()) {
+        apply from: '.procedure_renamer/postprocess.gradle'
+    }
+
+neoforge-26.2:
+  gradle: |
+    if (file('.procedure_renamer/postprocess.gradle').exists()) {
+        apply from: '.procedure_renamer/postprocess.gradle'
+    }
+
+neoforge-26.3:
+  gradle: |
+    if (file('.procedure_renamer/postprocess.gradle').exists()) {
+        apply from: '.procedure_renamer/postprocess.gradle'
+    }
+

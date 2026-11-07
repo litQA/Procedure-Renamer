@@ -1,0 +1,3 @@
+# Configuration-only element; it generates no Java files.
+# The actual rename/move/import work is performed by the Gradle post-processor.
+templates: []

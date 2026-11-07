@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.0.6.12-beta
+
+## New Content
+- MCreator 2026.3 EAP support, with plugin version identifiers `202600344621` and `2026003`.
+- Generator coverage expanded to 23 Java generators: the 14 generators retained from the 2026.1 branch plus Fabric 1.20.1, 1.21.1, 1.21.11, 26.1.2, 26.2, 26.3 and NeoForge 26.1.2, 26.2, 26.3.
+- A 2026.3 compile-only API artifact extracted from the EAP distribution.
+
+## Changes
+- The fixed plugin archive name is now `procedure_renamer-2026.3.zip`.
+- The plugin build uses the EAP JDK 25 toolchain while emitting Java 21 bytecode.
+- README, MIGRATION-REPORT and the workspace target document describe the 2026.3 generator matrix and the retained legacy coverage.
+
+## Known Limitations
+- `fabric-26.2`, `neoforge-26.1.2` and `neoforge-26.2` are declared but are not bundled with the EAP build used for this port; real build verification is pending until matching generator plugins are available.
+- Most 2026.1 generators are not bundled with MCreator 2026.3 and remain supported through third-party generator plugins.
+
 ## 1.0.5.9-beta
 
 ## Fixes
