@@ -14,6 +14,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -403,6 +404,8 @@ public final class ProcedureRenameProcessor {
     }
 
     private String insertImports(String text, Path file, List<Plan> plans, Map<Path, String> texts) {
+        text = removeStaleWildcardImports(text, plans, texts);
+
         String filePackage = parsePackage(text);
         if (filePackage == null) {
             return text;
@@ -468,6 +471,34 @@ public final class ProcedureRenameProcessor {
                 + "\n\n"
                 + String.join("\n", imports)
                 + text.substring(insertAt);
+    }
+
+    private String removeStaleWildcardImports(String text, List<Plan> plans, Map<Path, String> texts) {
+        Set<String> oldPackages = new LinkedHashSet<>();
+        for (Plan plan : plans) {
+            if (!plan.oldPackage.equals(plan.newPackage)) {
+                oldPackages.add(plan.oldPackage);
+            }
+        }
+
+        for (String oldPackage : oldPackages) {
+            if (packageExistsInSources(texts, oldPackage)) {
+                continue;
+            }
+            Pattern staleImport = Pattern.compile(
+                    "(?m)^[ \\t]*import\\s+" + Pattern.quote(oldPackage) + "\\.\\*\\s*;[ \\t]*(?:\\r?\\n)?");
+            text = staleImport.matcher(text).replaceAll("");
+        }
+        return text;
+    }
+
+    private boolean packageExistsInSources(Map<Path, String> texts, String packageName) {
+        for (String text : texts.values()) {
+            if (packageName.equals(parsePackage(text))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Set<String> collectPublicTypes(Map<Path, String> texts, String packageName) {

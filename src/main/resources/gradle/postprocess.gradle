@@ -77,6 +77,20 @@ def prPrepare = tasks.register('procedureRenamePrepare') {
     inputs.dir(prSourceDir).optional()
     inputs.file(prConfigFile).optional()
     inputs.file(prPluginJarFile).optional()
+    File localPostprocess = new File(prProjectDir, '.procedure_renamer/postprocess.gradle')
+    if (localPostprocess.isFile()) {
+        inputs.file(localPostprocess)
+    }
+    if (prPluginJarFile.isFile()) {
+        String configuredPluginJar = prPluginJarFile.getText('UTF-8').trim()
+        if (configuredPluginJar) {
+            File configuredPlugin = new File(configuredPluginJar)
+            if (configuredPlugin.exists()) {
+                // Re-run when the plugin archive changes, even when its path is unchanged.
+                inputs.files(configuredPlugin)
+            }
+        }
+    }
     outputs.dir(prShadowDir)
     notCompatibleWithConfigurationCache('Procedure Renamer copies and rewrites Java sources before compilation')
 

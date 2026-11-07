@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.6.14-beta
+
+## Fixes
+Fixed 2 bug(s).
+- Removed wildcard imports of a procedure package that became empty when every procedure in it was moved, so generated procedure registries no longer reference a missing package.
+- Made `procedureRenamePrepare` re-run when the plugin archive or the workspace postprocess script changes, even when the configuration and generated sources are unchanged.
+
 ## 1.0.6.12-beta
 
 ## New Content
