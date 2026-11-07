@@ -48,6 +48,27 @@ external API and does not add a `procedure_renamer_postprocess` dependency to
 mod metadata. Legacy API IDs from older plugin versions are removed from the
 workspace settings automatically.
 
+## Legacy workspace migration
+
+Workspaces created with plugin versions before 1.0.6.10 may still have the
+removed `procedure_renamer_postprocess` API enabled. Such a workspace cannot
+open without the API definition. A temporary resource-only helper is provided:
+
+```bat
+gradlew.bat migrationHelperZip -g ..\caches\gradle
+```
+
+This produces `build/libs/procedure_renamer_migration-2026.1.zip`.
+
+1. Install the migration helper next to the main plugin.
+2. Restart MCreator and open each affected workspace; the main plugin removes
+   the legacy API ID from `mcreatorDependencies`.
+3. Save the workspace.
+4. Remove the migration helper and restart MCreator.
+
+The helper's API implementations have an empty Gradle block and do not alter
+builds or mod metadata. Do not keep it installed for normal use.
+
 ## Notes
 
 - The original `src/main/java` is never modified.

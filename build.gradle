@@ -67,3 +67,14 @@ tasks.named('jar') {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     archiveFileName = 'procedure_renamer-2026.1.zip'
 }
+
+// Temporary resource-only helper for workspaces that still have the removed
+// procedure_renamer_postprocess API enabled. It is built on demand and is not
+// part of the normal plugin archive.
+tasks.register('migrationHelperZip', Zip) {
+    from(layout.projectDirectory.dir('migration')) {
+        exclude 'README.md'
+    }
+    archiveFileName = 'procedure_renamer_migration-2026.1.zip'
+    destinationDirectory = layout.buildDirectory.dir('libs')
+}

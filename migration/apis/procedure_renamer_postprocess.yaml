@@ -1,0 +1,72 @@
+name: Procedure Renamer Legacy Migration
+
+forge-1.14.4:
+  required_when_enabled: false
+  version_range: "[0,)"
+  gradle: ""
+
+forge-1.16.5:
+  required_when_enabled: false
+  version_range: "[0,)"
+  gradle: ""
+
+forge-1.17.1:
+  required_when_enabled: false
+  version_range: "[0,)"
+  gradle: ""
+
+forge-1.18.2:
+  required_when_enabled: false
+  version_range: "[0,)"
+  gradle: ""
+
+forge-1.19.2:
+  required_when_enabled: false
+  version_range: "[0,)"
+  gradle: ""
+
+forge-1.19.4:
+  required_when_enabled: false
+  version_range: "[0,)"
+  gradle: ""
+
+forge-1.20.1:
+  required_when_enabled: false
+  version_range: "[0,)"
+  gradle: ""
+
+neoforge-1.20.1:
+  required_when_enabled: false
+  version_range: "[0,)"
+  gradle: ""
+
+neoforge-1.20.4:
+  required_when_enabled: false
+  version_range: "[0,)"
+  gradle: ""
+
+neoforge-1.20.6:
+  required_when_enabled: false
+  version_range: "[0,)"
+  gradle: ""
+
+neoforge-1.21.1:
+  required_when_enabled: false
+  version_range: "[0,)"
+  gradle: ""
+
+neoforge-1.21.4:
+  required_when_enabled: false
+  version_range: "[0,)"
+  gradle: ""
+
+neoforge-1.21.8:
+  required_when_enabled: false
+  version_range: "[0,)"
+  gradle: ""
+
+fabric-1.21.8:
+  required_when_enabled: false
+  version_range: "[0,)"
+  gradle: ""
+

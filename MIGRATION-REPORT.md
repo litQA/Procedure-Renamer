@@ -32,6 +32,13 @@ elements and are intentionally excluded.
    `build.gradle` instead. No `procedure_renamer_postprocess` dependency is
    generated.
 
+   Workspaces that still have the removed API ID enabled cannot open after the
+   API definition is removed. A separate, temporary resource-only plugin
+   (`procedure_renamer_migration`) restores only the API definitions so those
+   workspaces can open; the main plugin removes the legacy ID on load. Save the
+   workspace, remove the helper, and restart MCreator. The helper uses empty
+   Gradle blocks and does not affect builds or mod metadata.
+
 4. **Future and third-party generators.**
    MCreator resolves element definitions by exact generator name. A new
    generator or a third-party Java generator requires an additional

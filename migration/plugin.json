@@ -1,0 +1,14 @@
+{
+  "id": "procedure_renamer_migration",
+  "weight": 3002,
+  "supportedversions": [
+    2026001
+  ],
+  "info": {
+    "name": "Procedure Renamer Legacy Migration",
+    "version": "1.0.0.1-beta",
+    "description": "Temporary helper that provides the removed procedure_renamer_postprocess API definition so older workspaces can open, clean the legacy API ID, and then remove this helper.",
+    "author": "LitQA",
+    "license": "CC BY-NC 4.0"
+  }
+}

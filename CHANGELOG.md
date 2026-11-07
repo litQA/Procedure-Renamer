@@ -5,6 +5,7 @@
 ## Changes
 - Replaced the user-visible virtual build API with a managed `build.gradle` block; the external API option and the generated `procedure_renamer_postprocess` mod metadata dependency were removed.
 - Legacy workspaces with the API ID enabled are cleaned automatically.
+- Added a separate temporary `procedure_renamer_migration` helper plugin that restores only the legacy API definitions so older affected workspaces can open; the helper must be removed after migration.
 
 ## Fixes
 Fixed 1 bug(s).
