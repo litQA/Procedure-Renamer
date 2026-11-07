@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.6.10-beta
+
+## Changes
+- Replaced the user-visible virtual build API with a managed `build.gradle` block; the external API option and the generated `procedure_renamer_postprocess` mod metadata dependency were removed.
+- Legacy workspaces with the API ID enabled are cleaned automatically.
+
+## Fixes
+Fixed 1 bug(s).
+- Removed the legacy API setting so it can no longer remain enabled after deselection or add a mod dependency.
+
 ## 1.0.5.9-beta
 
 ## Fixes

@@ -24,18 +24,19 @@ elements and are intentionally excluded.
    risking a wrong rewrite. Complex user code may therefore need manual import
    cleanup.
 
-3. **Optional metadata dependency.**
-   The virtual API `procedure_renamer_postprocess` is enabled while the element
-   exists so that Run Client also compiles the rewritten sources. MCreator
-   writes enabled APIs into mod metadata as optional/suggests entries. The
-   dependency does not have to be installed at runtime; it is a metadata
-   side effect of the Gradle injection mechanism.
+3. **Build script injection replaces the virtual API.**
+   Older plugin versions provided a user-selectable virtual API named
+   `procedure_renamer_postprocess`, which could add an optional dependency to
+   mod metadata. The current implementation removes that API ID from
+   `mcreatorDependencies` and injects a managed block into the workspace
+   `build.gradle` instead. No `procedure_renamer_postprocess` dependency is
+   generated.
 
 4. **Future and third-party generators.**
    MCreator resolves element definitions by exact generator name. A new
    generator or a third-party Java generator requires an additional
-   `<generator>/procedure_rename.definition.yaml` and an entry in
-   `apis/procedure_renamer_postprocess.yaml`.
+   `<generator>/procedure_rename.definition.yaml`; the workspace-level
+   `build.gradle` managed block does not need per-generator duplication.
 
 5. **Run Client freshness.**
    The configuration is exported on load, save, element save and build start.

@@ -19,17 +19,26 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Exports the plugin configuration and keeps the virtual Gradle API enabled
- * while a Procedure Rename element exists in the workspace.
+ * Exports the plugin configuration and injects the build integration block
+ * directly into the workspace build script.
  */
 public final class ConfigSync {
 
-    public static final String API_ID = "procedure_renamer_postprocess";
+    private static final String LEGACY_API_ID = "procedure_renamer_postprocess";
 
     private static final String CONFIG_DIR = ".procedure_renamer";
     private static final String CONFIG_FILE = "config.json";
     private static final String SCRIPT_FILE = "postprocess.gradle";
     private static final String PLUGIN_JAR_FILE = "plugin-jar.txt";
+
+    private static final String BUILD_BLOCK_START = "// >>> procedure_renamer managed block >>>";
+    private static final String BUILD_BLOCK_END = "// <<< procedure_renamer managed block <<<";
+    private static final String BUILD_BLOCK = BUILD_BLOCK_START + "\n"
+            + "// This block is rewritten by the Procedure Renamer MCreator plugin on every build.\n"
+            + "if (file('.procedure_renamer/postprocess.gradle').exists()) {\n"
+            + "    apply from: '.procedure_renamer/postprocess.gradle'\n"
+            + "}\n"
+            + BUILD_BLOCK_END;
 
     private static File pluginJar;
 
@@ -58,16 +67,19 @@ public final class ConfigSync {
             }
 
             ProcedureRename element = findFirstElement(workspace);
+            boolean present = element != null;
+
             writeScript(configDir);
             writePluginJar(configDir);
 
-            if (element != null) {
+            if (present) {
                 writeConfig(configDir, element);
             } else {
                 deleteConfig(configDir);
             }
 
-            syncApi(workspace, element != null);
+            syncBuildScript(workspaceFolder, present);
+            removeLegacyApi(workspace);
             clearGradleConfigurationCache(workspace);
         } catch (Exception exception) {
             log("Configuration export failed: " + exception.getMessage());
@@ -170,24 +182,65 @@ public final class ConfigSync {
         new File(configDir, SCRIPT_FILE).delete();
     }
 
-    private static void syncApi(Workspace workspace, boolean present) {
+    private static void syncBuildScript(File workspaceFolder, boolean present) {
+        File buildGradle = new File(workspaceFolder, "build.gradle");
+        if (!buildGradle.isFile()) {
+            log("Workspace build.gradle not found; build integration not injected");
+            return;
+        }
+
+        try {
+            String text = Files.readString(buildGradle.toPath(), StandardCharsets.UTF_8);
+            String withoutManagedBlock = removeManagedBlock(text);
+            boolean hadBlock = !withoutManagedBlock.equals(text);
+
+            if (!present && !hadBlock) {
+                return;
+            }
+
+            String updated;
+            if (present) {
+                String base = withoutManagedBlock.replaceAll("\\s+$", "");
+                updated = (base.isEmpty() ? "" : base + "\n\n") + BUILD_BLOCK + "\n";
+            } else {
+                updated = withoutManagedBlock.replaceAll("\\s+$", "") + "\n";
+            }
+
+            writeIfChanged(buildGradle, updated);
+        } catch (IOException exception) {
+            log("Could not update workspace build.gradle: " + exception.getMessage());
+        }
+    }
+
+    private static String removeManagedBlock(String text) {
+        int start;
+        while ((start = text.indexOf(BUILD_BLOCK_START)) >= 0) {
+            int end = text.indexOf(BUILD_BLOCK_END, start);
+            if (end < 0) {
+                break;
+            }
+            end += BUILD_BLOCK_END.length();
+            text = text.substring(0, start) + text.substring(end);
+        }
+        return text;
+    }
+
+    private static void removeLegacyApi(Workspace workspace) {
         WorkspaceSettings settings = workspace.getWorkspaceSettings();
         if (settings == null) {
             return;
         }
 
         Set<String> current = settings.getMCreatorDependenciesRaw();
-        Set<String> updated = new LinkedHashSet<>();
-        if (current != null) {
-            updated.addAll(current);
+        if (current == null || !current.contains(LEGACY_API_ID)) {
+            return;
         }
 
-        boolean changed = present ? updated.add(API_ID) : updated.remove(API_ID);
-        if (changed) {
-            settings.setMCreatorDependencies(updated);
-            workspace.markDirty();
-            log("Virtual Gradle API " + (present ? "enabled" : "disabled"));
-        }
+        Set<String> updated = new LinkedHashSet<>(current);
+        updated.remove(LEGACY_API_ID);
+        settings.setMCreatorDependencies(updated);
+        workspace.markDirty();
+        log("Removed legacy virtual API ID " + LEGACY_API_ID);
     }
 
     private static void writeIfChanged(File file, String text) {

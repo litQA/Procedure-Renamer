@@ -42,9 +42,11 @@ invocation and is written into the generated `plugin.json`.
 3. Restart MCreator.
 4. Create a **Procedure Rename** element in a Java generator workspace.
 
-The virtual API `procedure_renamer_postprocess` is enabled automatically while
-the element exists. It may appear as an optional mod metadata dependency; this
-is documented in `MIGRATION-REPORT.md`.
+The Java plugin injects a managed block into the workspace `build.gradle` while
+the element exists. The implementation does not expose a user-selectable
+external API and does not add a `procedure_renamer_postprocess` dependency to
+mod metadata. Legacy API IDs from older plugin versions are removed from the
+workspace settings automatically.
 
 ## Notes
 
