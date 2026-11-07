@@ -17,10 +17,12 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * Exports the plugin configuration and keeps the virtual Gradle API enabled
- * while a Procedure Rename element exists in the workspace.
+ * Exports the plugin configuration and maintains a managed build.gradle block
+ * that applies the postprocessor without enabling a MCreator API dependency.
  */
 public final class ConfigSync {
 
@@ -30,6 +32,12 @@ public final class ConfigSync {
     private static final String CONFIG_FILE = "config.json";
     private static final String SCRIPT_FILE = "postprocess.gradle";
     private static final String PLUGIN_JAR_FILE = "plugin-jar.txt";
+    private static final String BUILD_GRADLE_FILE = "build.gradle";
+
+    private static final String MANAGED_BLOCK_START = "// >>> procedure_renamer managed block >>>";
+    private static final String MANAGED_BLOCK_END = "// <<< procedure_renamer managed block <<<";
+    private static final Pattern MANAGED_BLOCK_PATTERN = Pattern.compile(
+            "(?s)" + Pattern.quote(MANAGED_BLOCK_START) + ".*?" + Pattern.quote(MANAGED_BLOCK_END));
 
     private static File pluginJar;
 
@@ -67,7 +75,8 @@ public final class ConfigSync {
                 deleteConfig(configDir);
             }
 
-            syncApi(workspace, element != null);
+            syncBuildGradle(workspace, element != null);
+            removeLegacyApiDependency(workspace);
             clearGradleConfigurationCache(workspace);
         } catch (Exception exception) {
             log("Configuration export failed: " + exception.getMessage());
@@ -170,24 +179,73 @@ public final class ConfigSync {
         new File(configDir, SCRIPT_FILE).delete();
     }
 
-    private static void syncApi(Workspace workspace, boolean present) {
+    private static void removeLegacyApiDependency(Workspace workspace) {
         WorkspaceSettings settings = workspace.getWorkspaceSettings();
         if (settings == null) {
             return;
         }
 
         Set<String> current = settings.getMCreatorDependenciesRaw();
-        Set<String> updated = new LinkedHashSet<>();
-        if (current != null) {
-            updated.addAll(current);
+        if (current == null || !current.contains(API_ID)) {
+            return;
         }
 
-        boolean changed = present ? updated.add(API_ID) : updated.remove(API_ID);
-        if (changed) {
-            settings.setMCreatorDependencies(updated);
-            workspace.markDirty();
-            log("Virtual Gradle API " + (present ? "enabled" : "disabled"));
+        Set<String> updated = new LinkedHashSet<>(current);
+        updated.remove(API_ID);
+        settings.setMCreatorDependencies(updated);
+        workspace.markDirty();
+        log("Removed legacy virtual Gradle API " + API_ID);
+    }
+
+    private static void syncBuildGradle(Workspace workspace, boolean present) {
+        File buildGradle = new File(workspace.getWorkspaceFolder(), BUILD_GRADLE_FILE);
+        if (!buildGradle.isFile()) {
+            if (present) {
+                log("Could not find build.gradle; the postprocess script is not applied");
+            }
+            return;
         }
+
+        try {
+            String text = Files.readString(buildGradle.toPath(), StandardCharsets.UTF_8);
+            String updated = applyManagedBlock(text, present);
+            if (!updated.equals(text)) {
+                writeIfChanged(buildGradle, updated);
+                log("Updated build.gradle managed block");
+            }
+        } catch (IOException exception) {
+            log("Could not update build.gradle: " + exception.getMessage());
+        }
+    }
+
+    static String applyManagedBlock(String text, boolean present) {
+        String newline = text.contains("\r\n") ? "\r\n" : "\n";
+        Matcher matcher = MANAGED_BLOCK_PATTERN.matcher(text);
+
+        if (present) {
+            String block = managedBlock(newline);
+            if (matcher.find()) {
+                return matcher.replaceFirst(Matcher.quoteReplacement(block));
+            }
+            String prefix = text.isEmpty()
+                    ? ""
+                    : (text.endsWith("\n") || text.endsWith("\r") ? "" : newline) + newline;
+            return text + prefix + block + newline;
+        }
+
+        if (!matcher.find()) {
+            return text;
+        }
+        return matcher.replaceFirst("");
+    }
+
+    private static String managedBlock(String newline) {
+        return MANAGED_BLOCK_START + newline
+                + "// This block is rewritten by the Procedure Renamer plugin on workspace synchronization." + newline
+                + "if (file('.procedure_renamer/postprocess.gradle').exists()) {" + newline
+                + "    apply from: '.procedure_renamer/postprocess.gradle'" + newline
+                + "}" + newline
+                + MANAGED_BLOCK_END;
     }
 
     private static void writeIfChanged(File file, String text) {

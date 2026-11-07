@@ -14,10 +14,19 @@ The datapack, resourcepack and Bedrock addon generators do not contain
 Procedure elements and are intentionally excluded.
 
 The 14 retained generators are not all bundled with MCreator 2026.3. Their
-definitions and API entries remain in the plugin so a matching third-party
-generator plugin can use them. The same applies to `fabric-26.2`,
-`neoforge-26.1.2` and `neoforge-26.2`, which are declared but are not bundled
-with the EAP build used for this port.
+definitions remain in the plugin so a matching third-party generator plugin can
+use them. The same applies to `fabric-26.2`, `neoforge-26.1.2` and
+`neoforge-26.2`, which are declared but are not bundled with the EAP build used
+for this port.
+
+## Build Integration
+
+The plugin no longer enables the `procedure_renamer_postprocess` MCreator API.
+It maintains a managed block in the workspace `build.gradle` (the same pattern
+used by `optional_packs`) that applies `.procedure_renamer/postprocess.gradle`.
+This keeps Build and Run Client working without adding an optional/suggests
+dependency to generated mod metadata. Existing workspaces that still contain
+the legacy API ID are cleaned during the next synchronization.
 
 ## Known Limitations
 
@@ -34,18 +43,17 @@ with the EAP build used for this port.
    risking a wrong rewrite. Complex user code may therefore need manual import
    cleanup.
 
-3. **Optional metadata dependency.**
-   The virtual API `procedure_renamer_postprocess` is enabled while the element
-   exists so that Run Client also compiles the rewritten sources. MCreator
-   writes enabled APIs into mod metadata as optional/suggests entries. The
-   dependency does not have to be installed at runtime; it is a metadata side
-   effect of the Gradle injection mechanism.
+3. **Legacy API cleanup is save-dependent.**
+   The plugin removes the legacy `procedure_renamer_postprocess` API ID from
+   workspace settings during synchronization and marks the workspace dirty. If
+   the user exits without saving, the old ID may remain until the next
+   synchronization. The `build.gradle` managed block is authoritative and does
+   not depend on the API ID.
 
 4. **Future and third-party generators.**
    MCreator resolves element definitions by exact generator name. A new
    generator or a third-party Java generator requires an additional
-   `<generator>/procedure_rename.definition.yaml` and an entry in
-   `apis/procedure_renamer_postprocess.yaml`.
+   `<generator>/procedure_rename.definition.yaml`.
 
 5. **Run Client freshness.**
    The configuration is exported on load, save, element save and build start.
@@ -70,8 +78,8 @@ with the EAP build used for this port.
 
 9. **Legacy generators in 2026.3.**
    Most 2026.1 generators are not shipped with MCreator 2026.3. The plugin keeps
-   their definitions and API hooks, but a real build regression requires the
-   corresponding third-party generator plugin to be installed.
+   their definitions, but a real build regression requires the corresponding
+   third-party generator plugin to be installed.
 
 10. **Declared but unavailable 2026.3 generators.**
     `fabric-26.2`, `neoforge-26.1.2` and `neoforge-26.2` are not bundled with

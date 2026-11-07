@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.6.15-beta
+
+## Changes
+- Gradle injection now uses a managed workspace `build.gradle` block instead of the `procedure_renamer_postprocess` MCreator API.
+- Existing workspaces have the legacy API ID removed during synchronization, and the plugin no longer enables any MCreator API.
+- The `apis/procedure_renamer_postprocess.yaml` resource was removed, so generated mod metadata no longer receives the optional/suggests dependency.
+
 ## 1.0.6.14-beta
 
 ## Fixes
