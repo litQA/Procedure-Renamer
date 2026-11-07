@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.7.11
+
+## Changes
+- Marked the MCreator 2026.1 release as stable; the main plugin version no longer carries the `-beta` suffix.
+- Marked the temporary migration helper as `1.0.0.1` (stable, no beta suffix).
+
 ## 1.0.6.10-beta
 
 ## Changes
